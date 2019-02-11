@@ -10,27 +10,47 @@ int main(int argc, char** argv)
 	ros::NodeHandle nh;
 	image_transport::ImageTransport it(nh);
 	image_transport::Publisher pub = it.advertise("/image_raw", 1);
-	int i = 1;
-	std::string path = "/home/mihird/mihir_ws/src/camera_calibration/images/";
-	cv::Mat image = cv::imread(path + "1.jpeg", CV_LOAD_IMAGE_COLOR);
-	cv::waitKey(30);
-	if(! image.data )                              // Check for invalid input
-    {
-        ROS_INFO("Could not open or find the image\n") ;
-        return -1;
-    }
 
-    cv::imshow( "Display window", image );                   // Show our image inside it.
+	//std::string path = "/home/mihird/mihir_ws/src/camera_calibration/images/";
+	//cv::Mat image = cv::imread(path + "1.jpeg", CV_LOAD_IMAGE_COLOR);
 
-    cv::waitKey(0);
+	std::string path = "/home/mihird/mihir_ws/src/camera_calibration/images/*.jpeg";
+	std::vector<cv::String> fn;
+	std::vector<cv::Mat> images;
+	cv::glob(path,fn,true); // recurse
 
-	sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image).toImageMsg();
+	for (size_t k=0; k<fn.size(); ++k)
+	{
+	     cv::Mat im = cv::imread(fn[k], CV_LOAD_IMAGE_COLOR);
+	     if (im.empty()) //only proceed if sucsessful
+	     {
+	     	ROS_INFO("Could not open or find the image\n") ;
+	     	continue;
+	     }
+	     
+	     images.push_back(im);
 
-	ros::Rate loop_rate(5);	
-	while(nh.ok()) {
-	    pub.publish(msg);
+	}
+
+    //cv::imshow( "Display window", images[10] );                   // Show our image inside it.
+    //cv::waitKey(0);
+
+	//sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", images[3]).toImageMsg();
+	std::vector<sensor_msgs::ImagePtr> msgs;
+	for (int i = 0; i <images.size(); i++)
+	{
+		msgs.push_back(cv_bridge::CvImage(std_msgs::Header(), "bgr8", images[i]).toImageMsg());
+	}
+
+	ros::Rate loop_rate(5);
+	int i = 0;	
+	while(nh.ok()) 
+	{
+	    pub.publish(msgs[i]);
 	    ros::spinOnce();
 	    loop_rate.sleep();
+	    i++;
+	    if (i==msgs.size()) i = 0;
 	}
 
 }
