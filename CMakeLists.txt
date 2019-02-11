@@ -7,7 +7,15 @@ project(camera_calibration)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED
+ COMPONENTS
+  roscpp
+  sensor_msgs
+  image_transport
+  cv_bridge
+)
+
+find_package(OpenCV REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -130,6 +138,8 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/camera_calibration_node.cpp)
+add_executable(image_publisher_node src/image_publisher.cpp)
+target_link_libraries(image_publisher_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
