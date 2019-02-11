@@ -141,6 +141,9 @@ include_directories(
 add_executable(image_publisher_node src/image_publisher.cpp)
 target_link_libraries(image_publisher_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
+add_executable(camera_calibration_node src/camera_calibration.cpp)
+target_link_libraries(camera_calibration_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
