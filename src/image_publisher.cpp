@@ -42,7 +42,7 @@ int main(int argc, char** argv)
 		msgs.push_back(cv_bridge::CvImage(std_msgs::Header(), "bgr8", images[i]).toImageMsg());
 	}
 
-	ros::Rate loop_rate(5);
+	ros::Rate loop_rate(0.5);
 	int i = 0;	
 	while(nh.ok()) 
 	{
