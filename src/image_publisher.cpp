@@ -22,6 +22,7 @@ int main(int argc, char** argv)
 	for (size_t k=0; k<fn.size(); ++k)
 	{
 	     cv::Mat im = cv::imread(fn[k], CV_LOAD_IMAGE_COLOR);
+	     //cv::waitKey(30);
 	     if (im.empty()) //only proceed if sucsessful
 	     {
 	     	ROS_INFO("Could not open or find the image\n") ;
@@ -36,6 +37,8 @@ int main(int argc, char** argv)
     //cv::waitKey(0);
 
 	//sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", images[3]).toImageMsg();
+
+	// Create messages for each image
 	std::vector<sensor_msgs::ImagePtr> msgs;
 	for (int i = 0; i <images.size(); i++)
 	{
@@ -46,7 +49,7 @@ int main(int argc, char** argv)
 	int i = 0;	
 	while(nh.ok()) 
 	{
-	    pub.publish(msgs[i]);
+	    pub.publish(msgs[i]);	//publish each image on ros topic
 	    ros::spinOnce();
 	    loop_rate.sleep();
 	    i++;

@@ -4,6 +4,7 @@
 #include <opencv2/calib3d.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <string>
+#include <iostream>
 
 
 namespace enc = sensor_msgs::image_encodings;
@@ -12,13 +13,13 @@ namespace enc = sensor_msgs::image_encodings;
 int count = 0;
 
 /*
-void intrinsic_calibration(std::vector<std::vector<cv::Point3f>>& object_points, std::vector<std::vector<cv::Vec2f>>& image_points)
+void intrinsic_calibration(std::vector<std::vector<cv::Point3f> > object_points, std::vector<std::vector<cv::Vec2f> > image_points)
 {
-	cv::Mat intrinsic = Mat(3, 3, CV_32FC1);
+	cv::Mat intrinsic = cv::Mat(3, 3, CV_32FC1);
     cv::Mat distCoeffs;
-    std::vector<Mat> rvecs;
-    std::vector<Mat> tvecs;	
-	calibrateCamera(object_points, image_points, image.size(), intrinsic, distCoeffs, rvecs, tvecs);
+    std::vector<cv::Mat> rvecs;
+    std::vector<cv::Mat> tvecs;	
+	calibrateCamera(object_points, image_points, img_size, intrinsic, distCoeffs, rvecs, tvecs);
 }
 */
 
@@ -38,16 +39,21 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 	    return;
 	}
 
+	// *************** Detect circles *********************
     cv::Size patternsize(4,11); // number of centers
 	//cv::Mat gray = ....; // source image
 	std::vector<cv::Point2f> centers; //this will be filled by the detected centers
 
 	bool patternfound = cv::findCirclesGrid(cv_ptr->image, patternsize, centers, cv::CALIB_CB_ASYMMETRIC_GRID);
 
+	// Draw corners on image
 	cv::drawChessboardCorners(cv_ptr->image, patternsize, cv::Mat(centers), patternfound);
+	// ****************************************************
 
+	// *************** calibrate camera *********************
 	float square_size = 1.0;
 
+	// Change objects
 	std::vector<cv::Point3f> obj;
 	for (int i = 0; i < 4; i++)
       for (int j = 0; j < 11; j++)
@@ -69,11 +75,12 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 	    std::vector<cv::Mat> rvecs;
 	    std::vector<cv::Mat> tvecs;	
 		calibrateCamera(object_points, image_points, cv_ptr->image.size(), intrinsic, distCoeffs, rvecs, tvecs);
-		// Display the matrix
-		std::cout << intrinsic;
 		
-		}
+		// Display intrinsic K matrix
+		std::cout << intrinsic << "\n";
+		
 	}
+	// ***************************************************
 
 }
 
