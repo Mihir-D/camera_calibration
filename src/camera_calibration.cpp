@@ -12,16 +12,12 @@ namespace enc = sensor_msgs::image_encodings;
 
 int count = 0;
 
-/*
-void intrinsic_calibration(std::vector<std::vector<cv::Point3f> > object_points, std::vector<std::vector<cv::Vec2f> > image_points)
-{
-	cv::Mat intrinsic = cv::Mat(3, 3, CV_32FC1);
-    cv::Mat distCoeffs;
-    std::vector<cv::Mat> rvecs;
-    std::vector<cv::Mat> tvecs;	
-	calibrateCamera(object_points, image_points, img_size, intrinsic, distCoeffs, rvecs, tvecs);
+
+void save_data(std::string file_name, cv::Mat intrinsic, cv::Mat distCoeffs){
+	cv::FileStorage fs(file_name, cv::FileStorage::WRITE);
+	fs << "K" << intrinsic;
+	fs << "D" << distCoeffs;
 }
-*/
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -70,12 +66,16 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 	if (count == 20)
 	{
 		//intrinsic_calibration(object_points, image_points);
-		cv::Mat intrinsic = cv::Mat(3, 3, CV_32FC1);
+		cv::Mat intrinsic = cv::Mat(3, 3, CV_32FC1); // FC1 for specifying no of channels
 	    cv::Mat distCoeffs;
 	    std::vector<cv::Mat> rvecs;
 	    std::vector<cv::Mat> tvecs;	
 		calibrateCamera(object_points, image_points, cv_ptr->image.size(), intrinsic, distCoeffs, rvecs, tvecs);
 		
+		// Save in yaml file
+		std::string file_name = "/home/mihird/mihir_ws/src/camera_calibration/config/intrinsic_matrix";
+		save_data(file_name, intrinsic, distCoeffs);
+
 		// Display intrinsic K matrix
 		std::cout << intrinsic << "\n";
 		
