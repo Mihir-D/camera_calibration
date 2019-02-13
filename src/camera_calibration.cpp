@@ -8,8 +8,24 @@
 
 namespace enc = sensor_msgs::image_encodings;
 
+
+int count = 0;
+
+/*
+void intrinsic_calibration(std::vector<std::vector<cv::Point3f>>& object_points, std::vector<std::vector<cv::Vec2f>>& image_points)
+{
+	cv::Mat intrinsic = Mat(3, 3, CV_32FC1);
+    cv::Mat distCoeffs;
+    std::vector<Mat> rvecs;
+    std::vector<Mat> tvecs;	
+	calibrateCamera(object_points, image_points, image.size(), intrinsic, distCoeffs, rvecs, tvecs);
+}
+*/
+
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
+	count++;
+	
 	// Convert rosmsg to Mat object
 	cv_bridge::CvImageConstPtr cv_ptr;
 	try
@@ -30,11 +46,37 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 
 	cv::drawChessboardCorners(cv_ptr->image, patternsize, cv::Mat(centers), patternfound);
 
-	// Display image
-	cv::imshow("Display window", cv_ptr->image);
-    cv::waitKey(100);
+	float square_size = 1.0;
+
+	std::vector<cv::Point3f> obj;
+	for (int i = 0; i < 4; i++)
+      for (int j = 0; j < 11; j++)
+        obj.push_back(cv::Point3f((float)j * square_size, (float)i * square_size, 0.0));
+
+	std::vector<std::vector<cv::Point3f> > object_points;
+	std::vector<std::vector<cv::Point2f> > image_points;
+	if (patternfound)
+	{
+		image_points.push_back(centers);
+		object_points.push_back(obj);
+	}
+
+	if (count == 20)
+	{
+		//intrinsic_calibration(object_points, image_points);
+		cv::Mat intrinsic = cv::Mat(3, 3, CV_32FC1);
+	    cv::Mat distCoeffs;
+	    std::vector<cv::Mat> rvecs;
+	    std::vector<cv::Mat> tvecs;	
+		calibrateCamera(object_points, image_points, cv_ptr->image.size(), intrinsic, distCoeffs, rvecs, tvecs);
+		// Display the matrix
+		std::cout << intrinsic;
+		
+		}
+	}
 
 }
+
 
 int main(int argc, char** argv)
 {
