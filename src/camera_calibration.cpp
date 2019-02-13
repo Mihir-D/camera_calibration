@@ -5,12 +5,27 @@
 #include <cv_bridge/cv_bridge.h>
 #include <string>
 #include <iostream>
+#include <camera_calibration/calibrate.h>
 
 
 namespace enc = sensor_msgs::image_encodings;
 
 
 int count = 0;
+
+
+bool calibrateCallback(camera_calibration::calibrate::Request &req, camera_calibration::calibrate::Response &res)
+{
+	// Listen and calibrate
+	if (req.a == 1)
+	{
+		ROS_INFO("Calibrating");
+		res.success = "Success";
+	}
+	else
+		res.success = "Fail";
+	return true;
+}
 
 
 void save_data(std::string file_name, cv::Mat intrinsic, cv::Mat distCoeffs){
@@ -91,6 +106,7 @@ int main(int argc, char** argv)
 	ros::NodeHandle nh;
 	image_transport::ImageTransport it(nh);
 	image_transport::Subscriber sub = it.subscribe("/image_raw", 1, imageCallback);
+	ros::ServiceServer service = nh.advertiseService("calibrate", calibrateCallback);
 	ros::spin();
 
 } 

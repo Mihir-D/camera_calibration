@@ -10,6 +10,9 @@ project(camera_calibration)
 find_package(catkin REQUIRED
  COMPONENTS
   roscpp
+  rospy
+  std_msgs
+  message_generation
   sensor_msgs
   image_transport
   cv_bridge
@@ -58,11 +61,10 @@ find_package(OpenCV REQUIRED)
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  calibrate.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -72,10 +74,10 @@ find_package(OpenCV REQUIRED)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+ generate_messages(
+   DEPENDENCIES
+   std_msgs
+ )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
