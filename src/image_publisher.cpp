@@ -11,8 +11,6 @@ int main(int argc, char** argv)
 	image_transport::ImageTransport it(nh);
 	image_transport::Publisher pub = it.advertise("/image_raw", 1);
 
-	//std::string path = "/home/mihird/mihir_ws/src/camera_calibration/images/";
-	//cv::Mat image = cv::imread(path + "1.jpeg", CV_LOAD_IMAGE_COLOR);
 
 	std::string path = "/home/mihird/mihir_ws/src/camera_calibration/images/*.JPG";
 	std::vector<cv::String> fn;

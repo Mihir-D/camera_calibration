@@ -24,6 +24,7 @@ public:
 	bool is_done;
 	int no_of_images;
 	cv::Mat image;
+	int flag;
 
 	std::vector<cv::Point2f> centers; //this will be filled by the detected centers
 	std::vector<std::vector<cv::Point3f> > object_points;
@@ -38,8 +39,8 @@ public:
 	calibration(int n, std::string f_name)
 	{
 		// initialization
-		count = 0;
-		square_size = 1.0;
+		count = 0;  //count to stop after 20 images
+		square_size = 1.1; // in cm
 		is_done = false;
 		no_of_images = n;
 		file_name = f_name;
@@ -64,9 +65,9 @@ public:
 
 
 		std::vector<cv::Point3f> obj;
-		for (int i = 0; i < 4; i++)
-	      for (int j = 0; j < 11; j++)
-	        obj.push_back(cv::Point3f((float)j * square_size, (float)i * square_size, 0.0));
+		for (int i = 0; i < 11; i++)
+	      for (int j = 0; j < 4; j++)
+	        obj.push_back(cv::Point3f((float)(2*j + i % 2)* square_size, (float)i * square_size, 0.0));
 
 		count++;
 		if (patternfound)
@@ -82,14 +83,17 @@ public:
 			calibrate_now();
 			is_done = true;
 		}
-		
-		//display_image();
+
+		display_image();
 		return is_done;
 	}
 
 	void calibrate_now()
 	{	
 		intrinsic = cv::Mat(3, 3, CV_32FC1); // FC1 for specifying no of channels
+		distCoeffs = cv::Mat::zeros(8, 1, CV_32F);
+		//flag = 0;
+		//flag |= CV_CALIB_FIX_K5 | CV_CALIB_FIX_K6; // CV_CALIB_FIX_K1 | CV_CALIB_FIX_K2 | CV_CALIB_FIX_K3 | CV_CALIB_FIX_K4 |
 		calibrateCamera(object_points, image_points, image.size(), intrinsic, distCoeffs, rvecs, tvecs);
 		
 		// Save in yaml file
@@ -175,67 +179,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 			b.reset();
 		}
 	}
-	/*
-	count++;
 	
-	// Convert rosmsg to Mat object
-	cv_bridge::CvImageConstPtr cv_ptr;
-	try
-	{
-		cv_ptr = cv_bridge::toCvShare(msg, enc::BGR8);
-	}
-	catch (cv_bridge::Exception& e)
-	{
-	    ROS_ERROR("cv_bridge exception: %s", e.what());
-	    return;
-	}
-
-	// *************** Detect circles *********************
-    cv::Size patternsize(4,11); // number of centers
-	//cv::Mat gray = ....; // source image
-	std::vector<cv::Point2f> centers; //this will be filled by the detected centers
-
-	bool patternfound = cv::findCirclesGrid(cv_ptr->image, patternsize, centers, cv::CALIB_CB_ASYMMETRIC_GRID);
-
-	// Draw corners on image
-	cv::drawChessboardCorners(cv_ptr->image, patternsize, cv::Mat(centers), patternfound);
-	// ****************************************************
-
-	// *************** calibrate camera *********************
-	float square_size = 1.0;
-
-	// Change objects
-	std::vector<cv::Point3f> obj;
-	for (int i = 0; i < 4; i++)
-      for (int j = 0; j < 11; j++)
-        obj.push_back(cv::Point3f((float)j * square_size, (float)i * square_size, 0.0));
-
-	std::vector<std::vector<cv::Point3f> > object_points;
-	std::vector<std::vector<cv::Point2f> > image_points;
-	if (patternfound)
-	{
-		image_points.push_back(centers);
-		object_points.push_back(obj);
-	}
-
-	if (count == 20)
-	{
-		//intrinsic_calibration(object_points, image_points);
-		cv::Mat intrinsic = cv::Mat(3, 3, CV_32FC1); // FC1 for specifying no of channels
-	    cv::Mat distCoeffs;
-	    std::vector<cv::Mat> rvecs;
-	    std::vector<cv::Mat> tvecs;	
-		calibrateCamera(object_points, image_points, cv_ptr->image.size(), intrinsic, distCoeffs, rvecs, tvecs);
-		
-		// Save in yaml file
-		std::string file_name = "/home/mihird/mihir_ws/src/camera_calibration/config/intrinsic_matrix";
-		save_data(file_name, intrinsic, distCoeffs);
-
-		// Display intrinsic K matrix
-		std::cout << intrinsic << "\n";
-		
-	} */
-	// ***************************************************
 
 }
 
