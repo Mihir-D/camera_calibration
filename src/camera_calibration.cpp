@@ -37,7 +37,7 @@ public:
 	{
 		// initialization
 		count = 0;
-		square_size = 0;
+		square_size = 1.0;
 		is_done = false;
 		no_of_images = n;
 		file_name = f_name;
