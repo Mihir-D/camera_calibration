@@ -60,10 +60,19 @@ public:
 		*/
 		bool patternfound = cv::findCirclesGrid(image, patternsize, centers, cv::CALIB_CB_ASYMMETRIC_GRID);
 
+	    // Subpixel refinement
+	    cv::Mat src_gray;
+	    cv::cvtColor(image, src_gray, cv::COLOR_BGR2GRAY);
+	    cv::Size winSize = cv::Size( 5, 5 );
+	    cv::Size zeroZone = cv::Size( -1, -1 );
+	    cv::TermCriteria criteria = cv::TermCriteria( cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 40, 0.001 );
+	    cornerSubPix( src_gray, centers, winSize, zeroZone, criteria );	//Subpixel refinement function
+
 		// Draw corners on image
 		cv::drawChessboardCorners(image, patternsize, cv::Mat(centers), patternfound);
 
 
+		// Calculate 3D world points corresponding to centers
 		std::vector<cv::Point3f> obj;
 		for (int i = 0; i < 11; i++)
 	      for (int j = 0; j < 4; j++)
