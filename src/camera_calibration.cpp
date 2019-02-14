@@ -10,10 +10,102 @@
 
 namespace enc = sensor_msgs::image_encodings;
 
-
 int count = 0;
+bool cal_b = false;	// Only calibrate and save when service is called
+
+class calibration
+{
+public:
+	int count;	// Count for reading images
+	float square_size;
+	std::string file_name;
+	bool is_done;
+	int no_of_images;
+	cv::Mat image;
+
+	std::vector<cv::Point2f> centers; //this will be filled by the detected centers
+	std::vector<std::vector<cv::Point3f> > object_points;
+	std::vector<std::vector<cv::Point2f> > image_points;
+
+	cv::Mat intrinsic; // FC1 for specifying no of channels
+    cv::Mat distCoeffs;
+    std::vector<cv::Mat> rvecs;
+    std::vector<cv::Mat> tvecs;	
 
 
+	calibration(int n, std::string f_name)
+	{
+		// initialization
+		count = 0;
+		square_size = 0;
+		is_done = false;
+		no_of_images = n;
+		file_name = f_name;
+	}
+
+	bool calibrate_camera_intrinsic(cv::Mat im)
+	{
+		image = im;
+		if (is_done && (count == no_of_images))
+			return true;
+		// put code
+		cv::Size patternsize(4,11); // number of centers
+		bool patternfound = cv::findCirclesGrid(image, patternsize, centers, cv::CALIB_CB_ASYMMETRIC_GRID);
+
+		// Draw corners on image
+		cv::drawChessboardCorners(image, patternsize, cv::Mat(centers), patternfound);
+
+
+		std::vector<cv::Point3f> obj;
+		for (int i = 0; i < 4; i++)
+	      for (int j = 0; j < 11; j++)
+	        obj.push_back(cv::Point3f((float)j * square_size, (float)i * square_size, 0.0));
+
+		count++;
+		if (patternfound)
+		{
+			image_points.push_back(centers);
+			object_points.push_back(obj);
+		}
+
+		if (count == no_of_images)
+		{
+			calibrate_now();
+			is_done = true;
+		}
+		return is_done;
+	}
+
+	void calibrate_now()
+	{	
+		intrinsic = cv::Mat(3, 3, CV_32FC1); // FC1 for specifying no of channels
+		calibrateCamera(object_points, image_points, image.size(), intrinsic, distCoeffs, rvecs, tvecs);
+		
+		// Save in yaml file
+		save_data();
+
+		// Display intrinsic K matrix
+		std::cout << intrinsic << "\n";
+	}
+
+	void save_data(){
+		//already have this function
+		cv::FileStorage fs(file_name, cv::FileStorage::WRITE);
+		fs << "K" << intrinsic;
+		fs << "D" << distCoeffs;
+	}
+
+	void reset(){
+		// Reset all variables to initial values
+	}
+};
+
+// Initialize class objects
+calibration a(20, "/home/mihird/mihir_ws/src/camera_calibration/config/intrinsic_matrix");
+calibration b(20, "/home/mihird/mihir_ws/src/camera_calibration/config/intrinsic_matrix1");
+
+
+// Service callback function
 bool calibrateCallback(camera_calibration::calibrate::Request &req, camera_calibration::calibrate::Response &res)
 {
 	// Listen and calibrate
@@ -21,6 +113,8 @@ bool calibrateCallback(camera_calibration::calibrate::Request &req, camera_calib
 	{
 		ROS_INFO("Calibrating");
 		res.success = "Success";
+		cal_b = true;
+
 	}
 	else
 		res.success = "Fail";
@@ -36,6 +130,28 @@ void save_data(std::string file_name, cv::Mat intrinsic, cv::Mat distCoeffs){
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
+	// Convert rosmsg to Mat object
+	cv_bridge::CvImageConstPtr cv_ptr;
+	try
+	{
+		cv_ptr = cv_bridge::toCvShare(msg, enc::BGR8);
+	}
+	catch (cv_bridge::Exception& e)
+	{
+	    ROS_ERROR("cv_bridge exception: %s", e.what());
+	    return;
+	}
+
+	a.calibrate_camera_intrinsic(cv_ptr->image);
+	if (cal_b){
+		b.calibrate_camera_intrinsic(cv_ptr->image);
+		if(b.is_done){
+			// Reset object
+			cal_b = false;
+			b.reset();
+		}
+	}
+	/*
 	count++;
 	
 	// Convert rosmsg to Mat object
@@ -94,7 +210,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 		// Display intrinsic K matrix
 		std::cout << intrinsic << "\n";
 		
-	}
+	} */
 	// ***************************************************
 
 }
