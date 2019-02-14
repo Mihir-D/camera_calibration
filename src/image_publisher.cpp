@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 	//std::string path = "/home/mihird/mihir_ws/src/camera_calibration/images/";
 	//cv::Mat image = cv::imread(path + "1.jpeg", CV_LOAD_IMAGE_COLOR);
 
-	std::string path = "/home/mihird/mihir_ws/src/camera_calibration/images/*.jpeg";
+	std::string path = "/home/mihird/mihir_ws/src/camera_calibration/images/*.JPG";
 	std::vector<cv::String> fn;
 	std::vector<cv::Mat> images;
 	cv::glob(path,fn,true); // recurse
@@ -53,7 +53,8 @@ int main(int argc, char** argv)
 	    ros::spinOnce();
 	    loop_rate.sleep();
 	    i++;
-	    if (i==msgs.size()) i = 0;
+	    if (i==msgs.size()) 
+	    	i = 0;
 	}
 
 }

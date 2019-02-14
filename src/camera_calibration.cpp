@@ -6,13 +6,15 @@
 #include <string>
 #include <iostream>
 #include <camera_calibration/calibrate.h>
+#include <opencv2/features2d.hpp>
 
 
 namespace enc = sensor_msgs::image_encodings;
 
-int count = 0;
 bool cal_b = false;	// Only calibrate and save when service is called
 
+
+// Common class for performing calibration, given inpute images
 class calibration
 {
 public:
@@ -50,6 +52,11 @@ public:
 			return true;
 		// put code
 		cv::Size patternsize(4,11); // number of centers
+		/*
+		cv::SimpleBlobDetector::Params params;
+		params.maxArea = 10e6;
+		cv::Ptr<cv::SimpleBlobDetector> blobDetector = cv::SimpleBlobDetector::create(params);
+		*/
 		bool patternfound = cv::findCirclesGrid(image, patternsize, centers, cv::CALIB_CB_ASYMMETRIC_GRID);
 
 		// Draw corners on image
@@ -66,13 +73,17 @@ public:
 		{
 			image_points.push_back(centers);
 			object_points.push_back(obj);
+			ROS_INFO("%d", count);
 		}
+
 
 		if (count == no_of_images)
 		{
 			calibrate_now();
 			is_done = true;
 		}
+		
+		//display_image();
 		return is_done;
 	}
 
@@ -95,9 +106,22 @@ public:
 		fs << "D" << distCoeffs;
 	}
 
-	void reset(){
-		// Reset all variables to initial values
+	void display_image(){
+		resize(image, image, cv::Size(image.cols/4, image.rows/4));
+		cv::imshow("found corners", image);
+		cv::waitKey(100);
 	}
+
+	void reset()
+	{
+		// Reset all variables to initial values
+		count = 0;
+		is_done = false;
+
+		object_points.clear();
+		image_points.clear();
+	}
+
 };
 
 // Initialize class objects
