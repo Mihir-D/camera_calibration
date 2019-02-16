@@ -12,7 +12,7 @@ int main(int argc, char** argv)
 	image_transport::Publisher pub = it.advertise("/image_raw", 1);
 
 
-	std::string path = "/home/mihird/mihir_ws/src/camera_calibration/images/*.JPG";
+	std::string path = "/images/*.JPG"; // /home/mihird/mihir_ws/src/camera_calibration
 	std::vector<cv::String> fn;
 	std::vector<cv::Mat> images;
 	cv::glob(path,fn,true); // recurse

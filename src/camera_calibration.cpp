@@ -7,6 +7,7 @@
 #include <iostream>
 #include <camera_calibration/calibrate.h>
 #include <opencv2/features2d.hpp>
+#include "opencv2/imgproc/imgproc.hpp"
 
 
 namespace enc = sensor_msgs::image_encodings;
@@ -58,6 +59,8 @@ public:
 		params.maxArea = 10e6;
 		cv::Ptr<cv::SimpleBlobDetector> blobDetector = cv::SimpleBlobDetector::create(params);
 		*/
+
+		/*
 		bool patternfound = cv::findCirclesGrid(image, patternsize, centers, cv::CALIB_CB_ASYMMETRIC_GRID);
 
 	    // Subpixel refinement
@@ -67,6 +70,9 @@ public:
 	    cv::Size zeroZone = cv::Size( -1, -1 );
 	    cv::TermCriteria criteria = cv::TermCriteria( cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 40, 0.001 );
 	    cornerSubPix( src_gray, centers, winSize, zeroZone, criteria );	//Subpixel refinement function
+	    */
+
+	    bool patternfound = image_pyramid(4); // takes depth of pyramid as argument, image size reduced by 2^(depth-1)
 
 		// Draw corners on image
 		cv::drawChessboardCorners(image, patternsize, cv::Mat(centers), patternfound);
@@ -93,7 +99,7 @@ public:
 			is_done = true;
 		}
 
-		display_image();
+		display_image(4);
 		return is_done;
 	}
 
@@ -112,6 +118,47 @@ public:
 		std::cout << intrinsic << "\n";
 	}
 
+	// Builds pyramid and finds corners
+	bool image_pyramid(int depth)
+	{
+		/*
+		std::vector<cv::Mat> pyramid;
+		cv::Mat dest;
+		cv::cvtColor(image, dest, cv::COLOR_BGR2GRAY);
+		pyramid.push_back(dest)
+		// build Pyramid
+		for (int i = 0; i < depth-1; i++)
+		{
+			cv::pyrDown(pyramid[i], dest, cv::Size(pyramid[i].cols/2, pyramid[i].rows/2));
+			pyramid[i+1].push_back(dest);
+		}
+
+		bool found = false;
+		int i = 3;
+		cv::Size patternsize(4,11); // number of centers
+		while (!found && i >= 0)
+		{
+			found = cv::findCirclesGrid(pyramid[i], patternsize, centers, cv::CALIB_CB_ASYMMETRIC_GRID);
+			i--;
+		}
+		if (!found)
+			return false;
+		// Subpixel refinement
+	    cv::Mat src_gray;
+	    cv::cvtColor(image, src_gray, cv::COLOR_BGR2GRAY);
+	    cv::Size winSize = cv::Size( 5, 5 );
+	    cv::Size zeroZone = cv::Size( -1, -1 );
+	    cv::TermCriteria criteria = cv::TermCriteria( cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 40, 0.001 );
+		for (int j = i; j>0; j--)
+		{
+			cv::pyrUp(pyramid[i], dest, cv::Size(pyramid[i].cols*2, pyramid[i].rows*2));
+			pyramid[i-1] = dest;
+			cornerSubPix( pyramid[i-1], centers, winSize, zeroZone, criteria );	//Subpixel refinement function
+		}*/
+
+		return true;
+	}
+
 	void save_data(){
 		//already have this function
 		cv::FileStorage fs(file_name, cv::FileStorage::WRITE);
@@ -119,8 +166,8 @@ public:
 		fs << "D" << distCoeffs;
 	}
 
-	void display_image(){
-		resize(image, image, cv::Size(image.cols/4, image.rows/4));
+	void display_image(int scale_down){
+		resize(image, image, cv::Size(image.cols/scale_down, image.rows/scale_down));
 		cv::imshow("found corners", image);
 		cv::waitKey(100);
 	}
