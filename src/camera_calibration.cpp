@@ -13,6 +13,7 @@
 namespace enc = sensor_msgs::image_encodings;
 
 bool cal_b = false;	// Only calibrate and save when service is called
+std::string pkg_path;
 
 
 // Common class for performing calibration, given inpute images
@@ -60,7 +61,7 @@ public:
 		cv::Ptr<cv::SimpleBlobDetector> blobDetector = cv::SimpleBlobDetector::create(params);
 		*/
 
-		/*
+
 		bool patternfound = cv::findCirclesGrid(image, patternsize, centers, cv::CALIB_CB_ASYMMETRIC_GRID);
 
 	    // Subpixel refinement
@@ -70,9 +71,9 @@ public:
 	    cv::Size zeroZone = cv::Size( -1, -1 );
 	    cv::TermCriteria criteria = cv::TermCriteria( cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 40, 0.001 );
 	    cornerSubPix( src_gray, centers, winSize, zeroZone, criteria );	//Subpixel refinement function
-	    */
+	    
 
-	    bool patternfound = image_pyramid(4); // takes depth of pyramid as argument, image size reduced by 2^(depth-1)
+	    //bool patternfound = image_pyramid(4); // takes depth of pyramid as argument, image size reduced by 2^(depth-1)
 
 		// Draw corners on image
 		cv::drawChessboardCorners(image, patternsize, cv::Mat(centers), patternfound);
@@ -161,7 +162,7 @@ public:
 
 	void save_data(){
 		//already have this function
-		cv::FileStorage fs(file_name, cv::FileStorage::WRITE);
+		cv::FileStorage fs(pkg_path + file_name, cv::FileStorage::WRITE);
 		fs << "K" << intrinsic;
 		fs << "D" << distCoeffs;
 	}
@@ -185,8 +186,8 @@ public:
 };
 
 // Initialize class objects
-calibration a(20, "/home/mihird/mihir_ws/src/camera_calibration/config/intrinsic_matrix");
-calibration b(20, "/home/mihird/mihir_ws/src/camera_calibration/config/intrinsic_matrix1");
+calibration a(20, "/config/intrinsic_matrix");
+calibration b(20, "/config/intrinsic_matrix1");
 
 
 // Service callback function
@@ -247,6 +248,9 @@ int main(int argc, char** argv)
 	image_transport::ImageTransport it(nh);
 	image_transport::Subscriber sub = it.subscribe("/image_raw", 1, imageCallback);
 	ros::ServiceServer service = nh.advertiseService("calibrate", calibrateCallback);
+
+    nh.getParam("/camera_calibration_node/path", pkg_path);
+
 	ros::spin();
 
 } 

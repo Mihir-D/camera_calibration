@@ -8,11 +8,20 @@ int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "image_publisher_node");
 	ros::NodeHandle nh;
+
+	std::string pkg_path;
+    if(nh.getParam("/image_publisher_node/path", pkg_path))
+    	ROS_INFO("TRUE");
+    else{
+    	ROS_INFO("FALSE");
+    	return 0;
+    }
+
 	image_transport::ImageTransport it(nh);
 	image_transport::Publisher pub = it.advertise("/image_raw", 1);
 
 
-	std::string path = "/images/*.JPG"; // /home/mihird/mihir_ws/src/camera_calibration
+	std::string path = pkg_path + "/images/*.JPG"; // /home/mihird/mihir_ws/src/camera_calibration
 	std::vector<cv::String> fn;
 	std::vector<cv::Mat> images;
 	cv::glob(path,fn,true); // recurse

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<launch>
+	<arg name="pkg_folder" default="$(find camera_calibration)"/>
+
+	<node name="image_publisher_node" pkg="camera_calibration" type="image_publisher_node" output="screen">
+		<param name="path" value="$(arg pkg_folder)" />
+	</node>
+
+	<node name="camera_calibration_node" pkg="camera_calibration" type="camera_calibration_node" output="screen">
+		<param name="path" value="$(arg pkg_folder)" />
+	</node>
+
+</launch>
