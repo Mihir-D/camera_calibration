@@ -1,8 +1,6 @@
 # camera_calibration
 
-## rosrun camera_calibration image_publisher_node
-
-## rosrun camera_calibration camera_calibration_node
+## Includes launch file
 
 ## rosservice call /calibrate 1
 
