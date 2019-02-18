@@ -207,11 +207,6 @@ bool calibrateCallback(camera_calibration::calibrate::Request &req, camera_calib
 }
 
 
-void save_data(std::string file_name, cv::Mat intrinsic, cv::Mat distCoeffs){
-	cv::FileStorage fs(file_name, cv::FileStorage::WRITE);
-	fs << "K" << intrinsic;
-	fs << "D" << distCoeffs;
-}
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
